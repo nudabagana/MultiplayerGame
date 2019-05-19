@@ -1,6 +1,5 @@
-import { windowSize, playerSize, healthBarSize, GREEN, RED, maxHealh } from "../config";
-import { getRandomInt } from "../utils";
 import "phaser";
+import { GREEN, healthBarSize, maxHealh, playerSize, RED } from "../config";
 import DrawableObject from "./DrawableObject";
 
 export default class Player extends DrawableObject {
@@ -12,11 +11,9 @@ export default class Player extends DrawableObject {
     y: number,
     graphics: Phaser.GameObjects.Graphics,
     color: number,
-    health: number,
+    health: number
   ) {
-    super(id,x,y,graphics,color);
-    //   this.x = playerSize + getRandomInt(windowSize.width - playerSize* 2);
-    //   this.y = playerSize + getRandomInt(windowSize.height - playerSize* 2);
+    super(id, x, y, graphics, color);
     this.health = health;
   }
 
@@ -27,10 +24,28 @@ export default class Player extends DrawableObject {
     this.g.strokeCircle(this.x, this.y, playerSize);
 
     this.g.fillStyle(RED);
-    this.g.fillRoundedRect(this.x - playerSize, this.y - playerSize - 15, healthBarSize , 10, 5);
+    this.g.fillRoundedRect(
+      this.x - playerSize,
+      this.y - playerSize - 15,
+      healthBarSize,
+      10,
+      5
+    );
     this.g.fillStyle(GREEN);
-    this.g.fillRoundedRect(this.x - playerSize, this.y - playerSize - 15, healthBarSize * Math.max(this.health / maxHealh, 0), 10, 5);
+    this.g.fillRoundedRect(
+      this.x - playerSize,
+      this.y - playerSize - 15,
+      healthBarSize * Math.max(this.health / maxHealh, 0),
+      10,
+      5
+    );
 
-    this.g.strokeRoundedRect(this.x - playerSize, this.y - playerSize - 15, healthBarSize , 10, 5);
+    this.g.strokeRoundedRect(
+      this.x - playerSize,
+      this.y - playerSize - 15,
+      healthBarSize,
+      10,
+      5
+    );
   };
 }

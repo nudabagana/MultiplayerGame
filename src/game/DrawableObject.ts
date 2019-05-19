@@ -1,5 +1,3 @@
-import { windowSize, playerSize } from "../config";
-import { getRandomInt } from "../utils";
 import "phaser";
 
 export default class DrawableObject {

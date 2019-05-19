@@ -1,11 +1,9 @@
-import { windowSize, bulletSize } from "../config";
-import { getRandomInt } from "../utils";
 import "phaser";
-
+import { bulletSize } from "../config";
 import DrawableObject from "./DrawableObject";
 
-export default class Bullet extends DrawableObject {
 
+export default class Bullet extends DrawableObject {
   draw = () => {
     this.g.fillStyle(this.color);
     this.g.lineStyle(2, 0x000000);

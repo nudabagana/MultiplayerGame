@@ -1,10 +1,8 @@
-import { windowSize, rocketSize } from "../config";
-import { getRandomInt } from "../utils";
 import "phaser";
+import { rocketSize } from "../config";
 import DrawableObject from "./DrawableObject";
 
 export default class Rocket extends DrawableObject {
-
   draw = () => {
     this.g.fillStyle(this.color);
     this.g.lineStyle(2, 0x000000);

@@ -1,9 +1,9 @@
 import "phaser";
-import { player1Color, player2Color, longClickDurationMs } from "../config";
+import { longClickDurationMs } from "../config";
+import NetworkManager from "../network/network";
+import Bullet from "./Bullet";
 import Player from "./Player";
 import Rocket from "./Rocket";
-import Bullet from "./Bullet";
-import DrawableObject from "./DrawableObject";
 
 export default class GameScene extends Phaser.Scene {
   players: Player[];
@@ -12,6 +12,7 @@ export default class GameScene extends Phaser.Scene {
   graphics?: Phaser.GameObjects.Graphics;
   prevMouseButton: number;
   leftButtonDownTime: number;
+  networkManager?: NetworkManager;
 
   constructor() {
     super({
@@ -25,7 +26,13 @@ export default class GameScene extends Phaser.Scene {
     this.leftButtonDownTime = 0;
   }
 
-  addPlayer = (id: number, x: number, y: number, color: number, health: number) => {
+  addPlayer = (
+    id: number,
+    x: number,
+    y: number,
+    color: number,
+    health: number
+  ) => {
     if (!this.players.find(player => player.id === id)) {
       this.players.push(new Player(id, x, y, this.graphics!, color, health));
     }
@@ -121,18 +128,20 @@ export default class GameScene extends Phaser.Scene {
       this
     );
     this.graphics = this.add.graphics();
+
+    this.networkManager = new NetworkManager("localhost", "3001", this);
   }
 
   moveClick = (x: number, y: number) => {
-    console.log(`MOVE to ${x}:${y}`);
+    this.networkManager!.moveTo(x, y);
   };
 
   rocketClick = (x: number, y: number) => {
-    console.log(`ROCKET to ${x}:${y}`);
+    this.networkManager!.rocketTo(x, y);
   };
 
   bulletClick = (x: number, y: number) => {
-    console.log(`BULLET to ${x}:${y}`);
+    this.networkManager!.bulletTo(x, y);
   };
 
   update(time: number, delta: number): void {
