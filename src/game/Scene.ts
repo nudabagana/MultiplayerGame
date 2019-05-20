@@ -1,9 +1,10 @@
 import "phaser";
-import { longClickDurationMs } from "../config";
+import { longClickDurationMs, ServerPort, SceneTypes } from "../config";
 import NetworkManager from "../network/network";
 import Bullet from "./Bullet";
 import Player from "./Player";
 import Rocket from "./Rocket";
+import { CLIENTS } from "../network/networkTypes";
 
 export default class GameScene extends Phaser.Scene {
   players: Player[];
@@ -13,6 +14,7 @@ export default class GameScene extends Phaser.Scene {
   prevMouseButton: number;
   leftButtonDownTime: number;
   networkManager?: NetworkManager;
+  clientType?: CLIENTS;
 
   constructor() {
     super({
@@ -24,6 +26,10 @@ export default class GameScene extends Phaser.Scene {
     this.graphics = undefined;
     this.prevMouseButton = 0;
     this.leftButtonDownTime = 0;
+  }
+
+  init = (data : {client : CLIENTS}) => {
+    this.clientType = data.client;
   }
 
   addPlayer = (
@@ -128,8 +134,15 @@ export default class GameScene extends Phaser.Scene {
       this
     );
     this.graphics = this.add.graphics();
+      
+    this.networkManager = new NetworkManager(location.hostname, ServerPort, this, this.clientType === CLIENTS.SPECTATOR);
 
-    this.networkManager = new NetworkManager("localhost", "3001", this);
+    this.input.keyboard.on('keydown-ESC', () => {
+      if (this.networkManager) {
+        this.networkManager.close();
+      }
+      this.scene.start(SceneTypes.MENU);
+    });
   }
 
   moveClick = (x: number, y: number) => {

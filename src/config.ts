@@ -1,4 +1,5 @@
-export const windowSize = {  width: 1000,height: 800 };
+export const windowSize = { width: 1000, height: 800 };
+export const ServerPort = '3001';
 // player
 export const maxHealh = 100;
 export const playerSize = 50;
@@ -13,7 +14,13 @@ export const rocketLifespan = 5000;
 // bulet
 export const bulletSize = 5;
 export const bulletSpeed = 3;
-export const bulletLifespan= 2000;
+export const bulletLifespan = 2000;
 export const GREEN = 0x00ff00;
 export const RED = 0xff0000;
+export const menuBckColor = 0x273e63;
 export const longClickDurationMs = 1000;
+
+export const SceneTypes = {
+  GAME: "GameScene",
+  MENU: "MenuScene",
+};

@@ -1,4 +1,4 @@
-import { player1Color, player2Color } from "../config";
+import { player1Color, player2Color, SceneTypes } from "../config";
 import GameScene from "../game/Scene";
 import { ACTIONS, CLIENTS, NetworkMsg } from "./networkTypes";
 
@@ -48,6 +48,13 @@ export default class NetworkManager {
         )
       );
     };
+    this.socket.onclose = () => {
+      this.scene.scene.start(SceneTypes.MENU);
+    }
+  }
+
+  close = () => {
+    this.socket.close();
   }
 
   moveTo = (x: number, y: number) => {

@@ -4,7 +4,6 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "watch": "tsc --watch --pretty",
     "start": "webpack --watch & live-server --port=3000 --entry-file=/src/index.html --no-browser --mount=/favicon.ico:./assets/favicon.png"
   },
   "devDependencies": {
