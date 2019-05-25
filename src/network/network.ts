@@ -1,6 +1,6 @@
 import { player1Color, player2Color, SceneTypes } from "../config";
 import GameScene from "../game/Scene";
-import { ACTIONS, CLIENTS, NetworkMsg } from "./networkTypes";
+import { ACTIONS, CLIENTS, NetworkMsg, GameState } from "./networkTypes";
 
 export default class NetworkManager {
   socket: WebSocket;
@@ -19,43 +19,19 @@ export default class NetworkManager {
     );
     this.socket.onmessage = event => {
       const msg: NetworkMsg = JSON.parse(event.data);
-      this.scene.clearPlayers();
-      this.scene.clearRockets();
-      this.scene.clearBullets();
-      msg.players.forEach(player =>
-        this.scene.addPlayer(
-          player.id,
-          player.x,
-          player.y,
-          player.id === 1 ? player1Color : player2Color,
-          player.health
-        )
-      );
-      msg.rockets.forEach(rocket =>
-        this.scene.addRocket(
-          rocket.id,
-          rocket.playerId === 1 ? player1Color : player2Color,
-          rocket.x,
-          rocket.y
-        )
-      );
-      msg.bullets.forEach(bullet =>
-        this.scene.addBullet(
-          bullet.id,
-          bullet.playerId === 1 ? player1Color : player2Color,
-          bullet.x,
-          bullet.y
-        )
-      );
+      if (!msg.trueState) {
+        this.updateGameObjects(msg.gameState);
+      } else {
+      }
     };
     this.socket.onclose = () => {
       this.scene.scene.start(SceneTypes.MENU);
-    }
+    };
   }
 
   close = () => {
     this.socket.close();
-  }
+  };
 
   moveTo = (x: number, y: number) => {
     this.socket.send(JSON.stringify({ action: ACTIONS.MOVE, x, y }));
@@ -67,5 +43,67 @@ export default class NetworkManager {
 
   bulletTo = (x: number, y: number) => {
     this.socket.send(JSON.stringify({ action: ACTIONS.BULLET, x, y }));
+  };
+
+  updateGameObjects = (msg: GameState) => {
+    this.scene.clearPlayers();
+    this.scene.clearRockets();
+    this.scene.clearBullets();
+    msg.players.forEach(player =>
+      this.scene.addPlayer(
+        player.id,
+        player.x,
+        player.y,
+        player.id === 1 ? player1Color : player2Color,
+        player.health
+      )
+    );
+    msg.rockets.forEach(rocket =>
+      this.scene.addRocket(
+        rocket.id,
+        rocket.playerId === 1 ? player1Color : player2Color,
+        rocket.x,
+        rocket.y
+      )
+    );
+    msg.bullets.forEach(bullet =>
+      this.scene.addBullet(
+        bullet.id,
+        bullet.playerId === 1 ? player1Color : player2Color,
+        bullet.x,
+        bullet.y
+      )
+    );
+  };
+
+  updateGameObjectsTrue = (msg: GameState) => {
+    this.scene.clearPlayers();
+    this.scene.clearRockets();
+    this.scene.clearBullets();
+    msg.players.forEach(player =>
+      this.scene.addPlayer(
+        player.id,
+        player.x,
+        player.y,
+        player.id === 1 ? player1Color : player2Color,
+        player.health
+      )
+    );
+    msg.rockets.forEach(rocket =>
+      this.scene.addRocket(
+        rocket.id,
+        rocket.playerId === 1 ? player1Color : player2Color,
+        rocket.x,
+        rocket.y
+      )
+    );
+    msg.bullets.forEach(bullet =>
+      this.scene.addBullet(
+        bullet.id,
+        bullet.playerId === 1 ? player1Color : player2Color,
+        bullet.x,
+        bullet.y
+      )
+    );
   };
 }

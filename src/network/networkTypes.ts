@@ -6,6 +6,12 @@ export enum ACTIONS {
 }
 
 export interface NetworkMsg {
+  gameState: GameState;
+  trueState: boolean;
+}
+
+export interface GameState {
+  tick: number;
   players: Player[];
   rockets: Rocket[];
   bullets: Bullet[];

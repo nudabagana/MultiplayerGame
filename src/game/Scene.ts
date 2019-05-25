@@ -10,6 +10,9 @@ export default class GameScene extends Phaser.Scene {
   players: Player[];
   rockets: Rocket[];
   bullets: Bullet[];
+  playersTrue: Player[];
+  rocketsTrue: Rocket[];
+  bulletsTrue: Bullet[];
   graphics?: Phaser.GameObjects.Graphics;
   prevMouseButton: number;
   leftButtonDownTime: number;
@@ -23,6 +26,9 @@ export default class GameScene extends Phaser.Scene {
     this.players = [];
     this.rockets = [];
     this.bullets = [];
+    this.playersTrue = [];
+    this.rocketsTrue = [];
+    this.bulletsTrue = [];
     this.graphics = undefined;
     this.prevMouseButton = 0;
     this.leftButtonDownTime = 0;
@@ -32,6 +38,7 @@ export default class GameScene extends Phaser.Scene {
     this.clientType = data.client;
   }
 
+  //===============Player=====================
   addPlayer = (
     id: number,
     x: number,
@@ -59,7 +66,8 @@ export default class GameScene extends Phaser.Scene {
       player.y = y;
     }
   };
-
+  //===============End of Player=====================
+  
   addRocket = (id: number, color: number, x: number, y: number) => {
     if (!this.rockets.find(rocket => rocket.id === id)) {
       this.rockets.push(new Rocket(id, x, y, this.graphics!, color));
