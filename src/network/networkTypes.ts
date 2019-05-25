@@ -5,16 +5,16 @@ export enum ACTIONS {
   SET_PING = 3,
 }
 
-export interface NetworkMsg {
-  gameState: GameState;
+export interface INetworkMsg {
+  gameState: IGameState;
   trueState: boolean;
 }
 
-export interface GameState {
+export interface IGameState {
   tick: number;
-  players: Player[];
-  rockets: Rocket[];
-  bullets: Bullet[];
+  players: IPlayer[];
+  rockets: IRocket[];
+  bullets: IBullet[];
 }
 
 export enum CLIENTS {
@@ -22,20 +22,20 @@ export enum CLIENTS {
   SPECTATOR = "1",
 }
 
-interface ServerGameObject {
+export interface IServerGameObject {
   id: number;
   x: number;
   y: number;
 }
 
-interface Player extends ServerGameObject {
+export interface IPlayer extends IServerGameObject {
   health: number;
 }
 
-interface Rocket extends ServerGameObject {
+export interface IRocket extends IServerGameObject {
   playerId: number;
 }
 
-interface Bullet extends ServerGameObject {
+export interface IBullet extends IServerGameObject {
   playerId: number;
 }

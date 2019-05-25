@@ -1,6 +1,7 @@
-import { player1Color, player2Color, SceneTypes } from "../config";
+import { SceneTypes } from "../config";
 import GameScene from "../game/Scene";
-import { ACTIONS, CLIENTS, NetworkMsg, GameState } from "./networkTypes";
+import { ACTIONS, CLIENTS, IGameState, INetworkMsg } from "./networkTypes";
+import { bulletFromIBullet, playerFromIPlayer, rocketFromIRocket } from "./utils";
 
 export default class NetworkManager {
   socket: WebSocket;
@@ -18,10 +19,11 @@ export default class NetworkManager {
       spectator ? CLIENTS.SPECTATOR : CLIENTS.PLAYER
     );
     this.socket.onmessage = event => {
-      const msg: NetworkMsg = JSON.parse(event.data);
+      const msg: INetworkMsg = JSON.parse(event.data);
       if (!msg.trueState) {
         this.updateGameObjects(msg.gameState);
       } else {
+        this.updateGameObjectsTrue(msg.gameState);
       }
     };
     this.socket.onclose = () => {
@@ -45,65 +47,29 @@ export default class NetworkManager {
     this.socket.send(JSON.stringify({ action: ACTIONS.BULLET, x, y }));
   };
 
-  updateGameObjects = (msg: GameState) => {
-    this.scene.clearPlayers();
-    this.scene.clearRockets();
-    this.scene.clearBullets();
+  updateGameObjects = (msg: IGameState) => {
+    this.scene.clearGameObjects();
     msg.players.forEach(player =>
-      this.scene.addPlayer(
-        player.id,
-        player.x,
-        player.y,
-        player.id === 1 ? player1Color : player2Color,
-        player.health
-      )
+      this.scene.addGameObject(playerFromIPlayer(player, this.scene.graphics!))
     );
     msg.rockets.forEach(rocket =>
-      this.scene.addRocket(
-        rocket.id,
-        rocket.playerId === 1 ? player1Color : player2Color,
-        rocket.x,
-        rocket.y
-      )
+      this.scene.addGameObject(rocketFromIRocket(rocket, this.scene.graphics!))
     );
     msg.bullets.forEach(bullet =>
-      this.scene.addBullet(
-        bullet.id,
-        bullet.playerId === 1 ? player1Color : player2Color,
-        bullet.x,
-        bullet.y
-      )
+      this.scene.addGameObject(bulletFromIBullet(bullet, this.scene.graphics!))
     );
   };
 
-  updateGameObjectsTrue = (msg: GameState) => {
-    this.scene.clearPlayers();
-    this.scene.clearRockets();
-    this.scene.clearBullets();
+  updateGameObjectsTrue = (msg: IGameState) => {
+    this.scene.clearGameObjectsTrue();
     msg.players.forEach(player =>
-      this.scene.addPlayer(
-        player.id,
-        player.x,
-        player.y,
-        player.id === 1 ? player1Color : player2Color,
-        player.health
-      )
+      this.scene.addGameObjectTrue(playerFromIPlayer(player, this.scene.graphics!, true))
     );
     msg.rockets.forEach(rocket =>
-      this.scene.addRocket(
-        rocket.id,
-        rocket.playerId === 1 ? player1Color : player2Color,
-        rocket.x,
-        rocket.y
-      )
+      this.scene.addGameObjectTrue(rocketFromIRocket(rocket, this.scene.graphics!, true))
     );
     msg.bullets.forEach(bullet =>
-      this.scene.addBullet(
-        bullet.id,
-        bullet.playerId === 1 ? player1Color : player2Color,
-        bullet.x,
-        bullet.y
-      )
+      this.scene.addGameObjectTrue(bulletFromIBullet(bullet, this.scene.graphics!, true))
     );
   };
 }
