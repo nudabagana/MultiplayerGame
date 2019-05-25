@@ -1,4 +1,5 @@
 import "phaser";
+import { GameObjectTypes } from "../network/NetworkTypes";
 
 export default class DrawableObject {
   x: number;
@@ -6,6 +7,7 @@ export default class DrawableObject {
   id: number;
   g: Phaser.GameObjects.Graphics;
   color: number;
+  type: GameObjectTypes;
   trueObject?: boolean;
 
   constructor(
@@ -14,6 +16,7 @@ export default class DrawableObject {
     y: number,
     graphics: Phaser.GameObjects.Graphics,
     color: number,
+    type: GameObjectTypes,
     trueObject?: boolean,
   ) {
     this.x = x;
@@ -21,6 +24,7 @@ export default class DrawableObject {
     this.id = id;
     this.g = graphics;
     this.color = color;
+    this.type = type;
     this.trueObject = trueObject;
   }
 

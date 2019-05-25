@@ -1,8 +1,9 @@
 import "phaser";
 import { longClickDurationMs, SceneTypes, ServerPort } from "../config";
-import NetworkManager from "../network/network";
-import { CLIENTS } from "../network/networkTypes";
+import NetworkManager from "../network/NetworkManager";
+import { CLIENTS, GameObjectTypes } from "../network/NetworkTypes";
 import DrawableObject from "./DrawableObject";
+import InputPlayer from "../testing/InputPlayer"
 
 export default class GameScene extends Phaser.Scene {
   gameObjects: DrawableObject[];
@@ -72,6 +73,38 @@ export default class GameScene extends Phaser.Scene {
       }
       this.scene.start(SceneTypes.MENU);
     });
+//=============InputPlayer==========================
+    const inputPlayer = new InputPlayer(this);
+    this.input.keyboard.on("keydown-SPACE", () => {
+      inputPlayer.setupPosition();
+    });
+    this.input.keyboard.on("keydown-ONE", () => {
+      inputPlayer.playInput1();
+    });
+    this.input.keyboard.on("keydown-TWO", () => {
+      inputPlayer.playInput2();
+    });
+    this.input.keyboard.on("keydown-THREE", () => {
+      inputPlayer.playInput3();
+    });
+    this.input.keyboard.on("keydown-FOUR", () => {
+      inputPlayer.playInput4();
+    });
+    this.input.keyboard.on("keydown-FIVE", () => {
+      inputPlayer.playInput5();
+    });
+    this.input.keyboard.on("keydown-SIX", () => {
+      inputPlayer.playInput6();
+    });
+    this.input.keyboard.on("keydown-SEVEN", () => {
+      inputPlayer.playInput7();
+    });
+    this.input.keyboard.on("keydown-EIGHT", () => {
+      inputPlayer.playInput8();
+    });
+    this.input.keyboard.on("keydown-NINE", () => {
+      inputPlayer.playInput9();
+    });
   }
 
   update(time: number, delta: number): void {
@@ -119,6 +152,10 @@ export default class GameScene extends Phaser.Scene {
       obj.y = y;
     }
   };
+
+  getPlayers = () => {
+    return this.gameObjects.filter( obj => obj.type === GameObjectTypes.PLAYER);
+  }
 //===================End of Game Objects==================
   moveClick = (x: number, y: number) => {
     this.networkManager!.moveTo(x, y);

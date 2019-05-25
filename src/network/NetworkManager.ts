@@ -1,6 +1,6 @@
 import { SceneTypes } from "../config";
-import GameScene from "../game/Scene";
-import { ACTIONS, CLIENTS, IGameState, INetworkMsg } from "./networkTypes";
+import GameScene from "../game/GameScene";
+import { ACTIONS, CLIENTS, IGameState, INetworkMsg } from "./NetworkTypes";
 import { gameObjectfromIGameObject } from "./utils";
 
 export default class NetworkManager {

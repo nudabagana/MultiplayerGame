@@ -9,7 +9,7 @@ import {
   IRocket,
   IGameObject,
   GameObjectTypes,
-} from "./networkTypes";
+} from "./NetworkTypes";
 
 export const playerFromIPlayer = (
   player: IPlayer,
@@ -23,6 +23,7 @@ export const playerFromIPlayer = (
     graphics,
     player.id === 1 ? player1Color : player2Color,
     player.health,
+    GameObjectTypes.PLAYER,
     trueObject
   );
 };
@@ -38,6 +39,7 @@ export const rocketFromIRocket = (
     rocket.y,
     graphics,
     rocket.playerId === 1 ? player1Color : player2Color,
+    GameObjectTypes.ROCKET,
     trueObject
   );
 };
@@ -53,6 +55,7 @@ export const bulletFromIBullet = (
     rocket.y,
     graphics,
     rocket.playerId === 1 ? player1Color : player2Color,
+    GameObjectTypes.BULLET,
     trueObject
   );
 };

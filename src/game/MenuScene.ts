@@ -1,6 +1,6 @@
 import "phaser";
 import { menuBckColor, SceneTypes } from "../config";
-import { CLIENTS } from "../network/networkTypes";
+import { CLIENTS } from "../network/NetworkTypes";
 
 export default class MenuScene extends Phaser.Scene {
   constructor() {

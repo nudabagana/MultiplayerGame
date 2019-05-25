@@ -1,6 +1,6 @@
 import "phaser";
 import { windowSize } from "../config";
-import GameScene from "./Scene";
+import GameScene from "./GameScene";
 import MenuScene from "./MenuScene";
 
 export const createGame = () => {

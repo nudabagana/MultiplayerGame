@@ -1,6 +1,7 @@
 import "phaser";
 import { GREEN, healthBarSize, maxHealh, playerSize, RED, TruePosAlpha } from "../config";
 import DrawableObject from "./DrawableObject";
+import { GameObjectTypes } from "../network/NetworkTypes";
 
 export default class Player extends DrawableObject {
   health: number;
@@ -12,9 +13,10 @@ export default class Player extends DrawableObject {
     graphics: Phaser.GameObjects.Graphics,
     color: number,
     health: number,
+    type: GameObjectTypes,
     trueObject?: boolean,
   ) {
-    super(id, x, y, graphics, color, trueObject);
+    super(id, x, y, graphics, color, type,trueObject);
     this.health = health;
   }
 
