@@ -1,9 +1,10 @@
 import "phaser";
 import { longClickDurationMs, SceneTypes, ServerPort } from "../config";
 import NetworkManager from "../network/NetworkManager";
-import { CLIENTS, GameObjectTypes } from "../network/NetworkTypes";
+import { CLIENTS, GameObjectTypes, ACTIONS } from "../network/NetworkTypes";
 import DrawableObject from "./DrawableObject";
-import InputPlayer from "../testing/InputPlayer"
+import InputPlayer from "../testing/InputPlayer";
+import StateRecorder from "../testing/StateRecorder"
 
 export default class GameScene extends Phaser.Scene {
   gameObjects: DrawableObject[];
@@ -13,6 +14,9 @@ export default class GameScene extends Phaser.Scene {
   leftButtonDownTime: number;
   networkManager?: NetworkManager;
   clientType?: CLIENTS;
+  stateRecorder?: StateRecorder;
+  tick: number;
+  tickTrue: number;
 
   constructor() {
     super({
@@ -23,6 +27,8 @@ export default class GameScene extends Phaser.Scene {
     this.graphics = undefined;
     this.prevMouseButton = 0;
     this.leftButtonDownTime = 0;
+    this.tick = 0;
+    this.tickTrue = 0;
   }
 
   init = (data: { client: CLIENTS }) => {
@@ -75,6 +81,19 @@ export default class GameScene extends Phaser.Scene {
     });
 //=============InputPlayer==========================
     const inputPlayer = new InputPlayer(this);
+    this.stateRecorder = new StateRecorder();
+    this.input.keyboard.on("keydown-D", () => {
+      this.stateRecorder!.save();
+    });
+    this.input.keyboard.on("keydown-R", () => {
+      this.stateRecorder!.startRecording()
+    });
+    this.input.keyboard.on("keydown-C", () => {
+      this.stateRecorder!.clear()
+    });
+    this.input.keyboard.on("keydown-S", () => {
+      this.stateRecorder!.stopRecording()
+    });
     this.input.keyboard.on("keydown-SPACE", () => {
       inputPlayer.setupPosition();
     });
@@ -111,6 +130,7 @@ export default class GameScene extends Phaser.Scene {
     this.graphics!.clear();
     this.gameObjects.forEach(obj => obj.draw());
     this.gameObjectsTrue.forEach(obj => obj.draw());
+    this.stateRecorder!.addState(this.tick,this.tickTrue,this.gameObjects, this.gameObjectsTrue);
   }
 //===================Game Objects==================
   addGameObject = (obj: DrawableObject) => {
@@ -157,15 +177,27 @@ export default class GameScene extends Phaser.Scene {
     return this.gameObjects.filter( obj => obj.type === GameObjectTypes.PLAYER);
   }
 //===================End of Game Objects==================
+
+  setTick = (tick: number) => {
+    this.tick = tick;
+  }
+
+  setTickTrue = (tick: number) => {
+    this.tickTrue = tick;
+  }
+
   moveClick = (x: number, y: number) => {
+    this.stateRecorder!.addAction( this.tick, this.tickTrue, x, y, ACTIONS.MOVE);
     this.networkManager!.moveTo(x, y);
   };
 
   rocketClick = (x: number, y: number) => {
+    this.stateRecorder!.addAction( this.tick, this.tickTrue, x, y, ACTIONS.ROCKET);
     this.networkManager!.rocketTo(x, y);
   };
 
   bulletClick = (x: number, y: number) => {
+    this.stateRecorder!.addAction( this.tick, this.tickTrue, x, y, ACTIONS.BULLET);
     this.networkManager!.bulletTo(x, y);
   };
 }

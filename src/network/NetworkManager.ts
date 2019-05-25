@@ -21,8 +21,10 @@ export default class NetworkManager {
     this.socket.onmessage = event => {
       const msg: INetworkMsg = JSON.parse(event.data);
       if (!msg.trueState) {
+        this.scene.setTick(msg.gameState.tick);
         this.updateGameObjects(msg.gameState);
       } else {
+        this.scene.setTickTrue(msg.gameState.tick);
         this.updateGameObjectsTrue(msg.gameState);
       }
     };
