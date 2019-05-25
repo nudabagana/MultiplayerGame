@@ -12,9 +12,7 @@ export interface INetworkMsg {
 
 export interface IGameState {
   tick: number;
-  players: IPlayer[];
-  rockets: IRocket[];
-  bullets: IBullet[];
+  gameObjects: IGameObject[];
 }
 
 export enum CLIENTS {
@@ -22,20 +20,27 @@ export enum CLIENTS {
   SPECTATOR = "1",
 }
 
-export interface IServerGameObject {
+export interface IGameObject {
+  type: GameObjectTypes;
   id: number;
   x: number;
   y: number;
 }
 
-export interface IPlayer extends IServerGameObject {
+export interface IPlayer extends IGameObject {
   health: number;
 }
 
-export interface IRocket extends IServerGameObject {
+export interface IRocket extends IGameObject {
   playerId: number;
 }
 
-export interface IBullet extends IServerGameObject {
+export interface IBullet extends IGameObject {
   playerId: number;
+}
+
+export enum GameObjectTypes {
+  PLAYER = 0,
+  ROCKET = 1,
+  BULLET = 2,
 }

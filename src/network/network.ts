@@ -1,7 +1,7 @@
 import { SceneTypes } from "../config";
 import GameScene from "../game/Scene";
 import { ACTIONS, CLIENTS, IGameState, INetworkMsg } from "./networkTypes";
-import { bulletFromIBullet, playerFromIPlayer, rocketFromIRocket } from "./utils";
+import { gameObjectfromIGameObject } from "./utils";
 
 export default class NetworkManager {
   socket: WebSocket;
@@ -49,27 +49,19 @@ export default class NetworkManager {
 
   updateGameObjects = (msg: IGameState) => {
     this.scene.clearGameObjects();
-    msg.players.forEach(player =>
-      this.scene.addGameObject(playerFromIPlayer(player, this.scene.graphics!))
-    );
-    msg.rockets.forEach(rocket =>
-      this.scene.addGameObject(rocketFromIRocket(rocket, this.scene.graphics!))
-    );
-    msg.bullets.forEach(bullet =>
-      this.scene.addGameObject(bulletFromIBullet(bullet, this.scene.graphics!))
+    msg.gameObjects.forEach(obj =>
+      this.scene.addGameObject(
+        gameObjectfromIGameObject(obj, this.scene.graphics!)
+      )
     );
   };
 
   updateGameObjectsTrue = (msg: IGameState) => {
     this.scene.clearGameObjectsTrue();
-    msg.players.forEach(player =>
-      this.scene.addGameObjectTrue(playerFromIPlayer(player, this.scene.graphics!, true))
-    );
-    msg.rockets.forEach(rocket =>
-      this.scene.addGameObjectTrue(rocketFromIRocket(rocket, this.scene.graphics!, true))
-    );
-    msg.bullets.forEach(bullet =>
-      this.scene.addGameObjectTrue(bulletFromIBullet(bullet, this.scene.graphics!, true))
+    msg.gameObjects.forEach(obj =>
+      this.scene.addGameObjectTrue(
+        gameObjectfromIGameObject(obj, this.scene.graphics!, true)
+      )
     );
   };
 }
