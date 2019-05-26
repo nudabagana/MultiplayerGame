@@ -30,12 +30,17 @@ export default class StateRecorder {
   actions: IAction[];
   receivedActions: IAction[];
   recording: boolean;
+  fileNote?: string;
 
   constructor() {
     this.states = [];
     this.actions = [];
     this.receivedActions = [];
     this.recording = false;
+  }
+
+  setFileNote = (note: string) => {
+    this.fileNote = note;
   }
 
   clear = () => {
@@ -66,7 +71,12 @@ export default class StateRecorder {
     );
     a.href = URL.createObjectURL(file);
     const date = new Date();
-    a.download = `Rec ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}.${date.getMilliseconds()}.txt`;
+    if ( this.fileNote){
+      a.download = `Rec ${this.fileNote} ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}.${date.getMinutes()}.${date.getMilliseconds()}.json`;
+    }
+    else {
+      a.download = `Rec ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}.${date.getMinutes()}.${date.getMilliseconds()}.json`;
+    }
     a.click();
   };
 
