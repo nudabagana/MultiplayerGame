@@ -13,6 +13,7 @@ import { gameObjectfromIGameObject } from "./utils";
 export default class NetworkManager {
   socket: WebSocket;
   scene: GameScene;
+  playerId?: number;
 
   constructor(
     addr: string,
@@ -32,8 +33,15 @@ export default class NetworkManager {
           this.scene.setTick(msg.data.tick - 1);
         }
         this.scene.checkTick(msg.data.tick);
+        if (msg.data.type === NetworkMsgTypes.SET_Player_ID){
+          this.playerId = msg.data.gameObject!.id;
+          this.scene.setLocalPlayerId(msg.data.gameObject!.id);
+        }
+
         if (msg.data.type === NetworkMsgTypes.ACTION){
-          this.scene.applyMessage( {action: msg.data.action})
+          if (msg.data.action!.playerId !== this.playerId){
+            this.scene.applyMessage( {action: msg.data.action});
+          }
         }else if (msg.data.type === NetworkMsgTypes.CREATE){
           this.scene.applyMessage({objToCreate: msg.data.gameObject})
         }else if (msg.data.type === NetworkMsgTypes.DELETE){
@@ -59,12 +67,12 @@ export default class NetworkManager {
     this.socket.send(JSON.stringify({ action: ACTIONS.MOVE, x, y }));
   };
 
-  rocketTo = (x: number, y: number) => {
-    this.socket.send(JSON.stringify({ action: ACTIONS.ROCKET, x, y }));
+  rocketTo = (id: number, x: number, y: number) => {
+    this.socket.send(JSON.stringify({ action: ACTIONS.ROCKET, id, x, y }));
   };
 
-  bulletTo = (x: number, y: number) => {
-    this.socket.send(JSON.stringify({ action: ACTIONS.BULLET, x, y }));
+  bulletTo = (id: number, x: number, y: number) => {
+    this.socket.send(JSON.stringify({ action: ACTIONS.BULLET, id, x, y }));
   };
 
   updateGameObjects = (objects: IGameObject[]) => {

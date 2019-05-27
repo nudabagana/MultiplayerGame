@@ -1,7 +1,7 @@
 import "phaser";
-import { GREEN, healthBarSize, maxHealh, playerSize, RED, TruePosAlpha, playerSeed, rocketDamage, bulletDamage } from "../config";
+import { GREEN, healthBarSize, maxHealh, playerSize, RED, TruePosAlpha, playerSeed, rocketDamage, bulletDamage, playerAllowedOffset } from "../config";
 import GameObject from "./GameObject";
-import { GameObjectTypes } from "../network/NetworkTypes";
+import { GameObjectTypes, IGameObject } from "../network/NetworkTypes";
 import Rocket from "./Rocket";
 
 export default class Player extends GameObject {
@@ -42,7 +42,6 @@ export default class Player extends GameObject {
     }
   }
 
-
   die = () => {
     this.destroy();
   }
@@ -77,5 +76,34 @@ export default class Player extends GameObject {
       10,
       5
     );
+  };
+
+  fixState = (obj: IGameObject) => {
+    let xOffset = obj.x - this.x;
+    
+    if ( Math.abs(xOffset) > playerAllowedOffset ){
+       if ( xOffset > 0) {
+         xOffset -= playerAllowedOffset;
+       } else {
+        xOffset += playerAllowedOffset;
+       }
+    } else {
+      xOffset = 0;
+    }
+    let yOffset = obj.y - this.y;
+
+    if ( Math.abs(yOffset) > playerAllowedOffset ){
+       if ( yOffset > 0) {
+        yOffset -= playerAllowedOffset;
+       } else {
+        yOffset += playerAllowedOffset;
+       }
+    } else {
+      yOffset = 0;
+    }
+
+    this.xOffset = xOffset;
+    this.yOffset = yOffset;
+    this.interpolatedAmount = 0;
   };
 }

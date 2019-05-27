@@ -11,6 +11,7 @@ export enum NetworkMsgTypes {
   CREATE = 2,
   DELETE = 3,
   SET_TICK = 4,
+  SET_Player_ID = 5,
 }
 
 export interface INetworkMsg {

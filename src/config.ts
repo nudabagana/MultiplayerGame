@@ -7,6 +7,7 @@ export const healthBarSize = playerSize * 2;
 export const player1Color = 0x0a3fdb;
 export const player2Color = 0x00e20b;
 export const playerSeed = 0.2;
+export const playerAllowedOffset = 150;
 // rocket
 export const rocketSize = 20;
 export const rocketSpeed = 0.8;

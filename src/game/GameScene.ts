@@ -47,6 +47,8 @@ export default class GameScene extends Phaser.Scene {
   unsimulatedTime: number;
   receivedMessages: IMessageStorage;
   serverState: IServerStateStorage;
+  localPlayerId: number;
+  nextProjectileId: number;
 
   constructor() {
     super({
@@ -62,6 +64,8 @@ export default class GameScene extends Phaser.Scene {
     this.unsimulatedTime = 0;
     this.receivedMessages = {};
     this.serverState = {};
+    this.localPlayerId = 0;
+    this.nextProjectileId = 0;
   }
 
   init = (data: { client: CLIENTS }) => {
@@ -367,6 +371,10 @@ export default class GameScene extends Phaser.Scene {
       obj => obj.type === GameObjectTypes.PLAYER && obj.id === id
     );
   };
+
+  setLocalPlayerId = (id : number) => {
+    this.localPlayerId = id;
+  }
   //===================End of Game Objects==================
   //===================Input Buffer==================
   addMessage = (tick: number, message: IMessage) => {
@@ -471,12 +479,23 @@ export default class GameScene extends Phaser.Scene {
     this.tickTrue = tick;
   };
 
+  getNextProjectileId = () => {
+    const id = this.localPlayerId * 100000 + this.nextProjectileId;
+    this.nextProjectileId++;
+    return id;
+  }
+
   moveClick = (x: number, y: number) => {
+    this.applyMessage({action: {action: ACTIONS.MOVE, x, y, playerId: this.localPlayerId}});
     this.stateRecorder!.addAction(this.tick, this.tickTrue, x, y, ACTIONS.MOVE);
     this.networkManager!.moveTo(x, y);
   };
 
   rocketClick = (x: number, y: number) => {
+    const id = this.getNextProjectileId();
+
+    this.applyMessage({action: {action: ACTIONS.ROCKET, x, y, playerId: this.localPlayerId, id}});
+
     this.stateRecorder!.addAction(
       this.tick,
       this.tickTrue,
@@ -484,10 +503,14 @@ export default class GameScene extends Phaser.Scene {
       y,
       ACTIONS.ROCKET
     );
-    this.networkManager!.rocketTo(x, y);
+    this.networkManager!.rocketTo(id, x, y);
   };
 
   bulletClick = (x: number, y: number) => {
+    const id = this.getNextProjectileId();
+
+    this.applyMessage({action: {action: ACTIONS.BULLET, x, y, playerId: this.localPlayerId, id}});
+
     this.stateRecorder!.addAction(
       this.tick,
       this.tickTrue,
@@ -495,7 +518,7 @@ export default class GameScene extends Phaser.Scene {
       y,
       ACTIONS.BULLET
     );
-    this.networkManager!.bulletTo(x, y);
+    this.networkManager!.bulletTo(id,x, y);
   };
 
   recordAllInputs = (doInputs: boolean) => {
