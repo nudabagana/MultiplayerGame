@@ -1,6 +1,13 @@
 import { SceneTypes } from "../config";
 import GameScene from "../game/GameScene";
-import { ACTIONS, CLIENTS, IData, INetworkMsg, IGameObject, NetworkMsgTypes } from "./NetworkTypes";
+import {
+  ACTIONS,
+  CLIENTS,
+  IData,
+  INetworkMsg,
+  IGameObject,
+  NetworkMsgTypes,
+} from "./NetworkTypes";
 import { gameObjectfromIGameObject } from "./utils";
 
 export default class NetworkManager {
@@ -21,16 +28,18 @@ export default class NetworkManager {
     this.socket.onmessage = event => {
       const msg: INetworkMsg = JSON.parse(event.data);
       if (!msg.trueState) {
-        if (msg.data.type === NetworkMsgTypes.SET_TICK){
-          this.scene.setTick(msg.data.tick-1);
+        if (msg.data.type === NetworkMsgTypes.SET_TICK) {
+          this.scene.setTick(msg.data.tick - 1);
         }
         this.scene.checkTick(msg.data.tick);
         if (msg.data.type === NetworkMsgTypes.ACTION){
-          this.scene.addMessage(msg.data.tick, {action: msg.data.action})
+          this.scene.applyMessage( {action: msg.data.action})
         }else if (msg.data.type === NetworkMsgTypes.CREATE){
-          this.scene.addMessage(msg.data.tick, {objToCreate: msg.data.gameObject})
+          this.scene.applyMessage({objToCreate: msg.data.gameObject})
         }else if (msg.data.type === NetworkMsgTypes.DELETE){
-          this.scene.addMessage(msg.data.tick, {objToDelete: msg.data.gameObject})
+          this.scene.applyMessage({objToDelete: msg.data.gameObject})
+        } else if (msg.data.type === NetworkMsgTypes.STATE) {
+          this.scene.addServerState(msg.data.tick, msg.data.gameObjects!);
         }
       } else {
         this.scene.setTickTrue(msg.data.tick);

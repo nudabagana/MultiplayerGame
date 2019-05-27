@@ -70,6 +70,10 @@ export interface IMessageStorage {
   [t: number]: IMessage[];
 }
 
+export interface IServerStateStorage {
+  [t: number]: IGameObject[];
+}
+
 export interface IMessage {
   action?: IGameAction;
   objToCreate?: IPlayer | IRocket | IBullet;

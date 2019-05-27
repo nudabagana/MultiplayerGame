@@ -16,6 +16,11 @@ import {
   IMessageStorage,
   IGameAction,
   IMessage,
+  IServerStateStorage,
+  IPlayer,
+  IRocket,
+  IBullet,
+  IGameObject,
 } from "../network/NetworkTypes";
 import GameObject from "./GameObject";
 import InputPlayer from "../testing/InputPlayer";
@@ -23,6 +28,7 @@ import StateRecorder from "../testing/StateRecorder";
 import { gameObjectfromIGameObject } from "../network/utils";
 import Rocket from "./Rocket";
 import Bullet from "./Bullet";
+import Player from "./Player";
 
 const TICK_TIME = 1000 / 30;
 
@@ -40,6 +46,7 @@ export default class GameScene extends Phaser.Scene {
   inputPlayer?: InputPlayer;
   unsimulatedTime: number;
   receivedMessages: IMessageStorage;
+  serverState: IServerStateStorage;
 
   constructor() {
     super({
@@ -54,6 +61,7 @@ export default class GameScene extends Phaser.Scene {
     this.tickTrue = 0;
     this.unsimulatedTime = 0;
     this.receivedMessages = {};
+    this.serverState = {};
   }
 
   init = (data: { client: CLIENTS }) => {
@@ -179,7 +187,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   simulateStep = (delta: number) => {
-    this.applayMessages();
+    this.applyServerState();
     this.move(delta);
     this.checkCollisions();
     this.destroy();
@@ -280,8 +288,17 @@ export default class GameScene extends Phaser.Scene {
     destX: number,
     destY: number
   ) => {
-    const bullet = new Bullet(id, playerId, x, y, destX, destY, this.graphics!,playerId === 1 ? player1Color : player2Color,
-      GameObjectTypes.BULLET);
+    const bullet = new Bullet(
+      id,
+      playerId,
+      x,
+      y,
+      destX,
+      destY,
+      this.graphics!,
+      playerId === 1 ? player1Color : player2Color,
+      GameObjectTypes.BULLET
+    );
     this.gameObjects.forEach(obj => {
       if (obj.type === GameObjectTypes.PLAYER && obj.id !== playerId) {
         if (
@@ -293,7 +310,10 @@ export default class GameScene extends Phaser.Scene {
     });
     this.gameObjects.push(bullet);
 
-    setTimeout(() => this.removeGameObject(bullet.id, bullet.type), bulletLifespan);
+    setTimeout(
+      () => this.removeGameObject(bullet.id, bullet.type),
+      bulletLifespan
+    );
   };
 
   addGameObject = (obj: GameObject) => {
@@ -348,7 +368,7 @@ export default class GameScene extends Phaser.Scene {
     );
   };
   //===================End of Game Objects==================
-
+  //===================Input Buffer==================
   addMessage = (tick: number, message: IMessage) => {
     if (!this.receivedMessages[tick]) {
       this.receivedMessages[tick] = [];
@@ -356,44 +376,88 @@ export default class GameScene extends Phaser.Scene {
     this.receivedMessages[tick].push(message);
   };
 
-  applayMessages = () => {
+  applyMessages = () => {
     if (this.receivedMessages[this.tick]) {
       this.receivedMessages[this.tick].forEach(msg => {
-        if (msg.action) {
-          const player = this.getPlayer(msg.action.playerId);
-          if (msg.action.action === ACTIONS.MOVE) {
-            if (player) {
-              player.calculateMovement(msg.action.x, msg.action.y);
-            }
-          } else if (msg.action.action === ACTIONS.ROCKET) {
-            if (player) {
-              this.addRocket(msg.action.id!, msg.action.playerId,player.x, player.y, msg.action.x, msg.action.y);
-            }
-          } else if (msg.action.action === ACTIONS.BULLET) {
-            if (player) {
-              this.addBullet(msg.action.id!, msg.action.playerId,player.x, player.y, msg.action.x, msg.action.y);
-            }
-          }
-        }
-        if (msg.objToCreate) {
-          this.addGameObject(
-            gameObjectfromIGameObject(msg.objToCreate, this.graphics!)
-          );
-        }
-        if (msg.objToDelete) {
-          this.removeGameObject(msg.objToDelete.id, msg.objToDelete.type);
-        }
+        this.applyMessage(msg);
       });
       delete this.receivedMessages[this.tick];
     }
   };
+
+  applyMessage = (msg: IMessage) => {
+    if (msg.action) {
+      const player = this.getPlayer(msg.action.playerId);
+      if (msg.action.action === ACTIONS.MOVE) {
+        if (player) {
+          player.calculateMovement(msg.action.x, msg.action.y);
+        }
+      } else if (msg.action.action === ACTIONS.ROCKET) {
+        if (player) {
+          this.addRocket(
+            msg.action.id!,
+            msg.action.playerId,
+            player.x,
+            player.y,
+            msg.action.x,
+            msg.action.y
+          );
+        }
+      } else if (msg.action.action === ACTIONS.BULLET) {
+        if (player) {
+          this.addBullet(
+            msg.action.id!,
+            msg.action.playerId,
+            player.x,
+            player.y,
+            msg.action.x,
+            msg.action.y
+          );
+        }
+      }
+    }
+    if (msg.objToCreate) {
+      this.addGameObject(
+        gameObjectfromIGameObject(msg.objToCreate, this.graphics!)
+      );
+    }
+    if (msg.objToDelete) {
+      this.removeGameObject(msg.objToDelete.id, msg.objToDelete.type);
+    }
+  };
+  //===================End of Input Buffer==================
+  //===================State Buffer==================
+  addServerState = (tick: number, state: IGameObject[]) => {
+    this.serverState[tick] = state;
+  };
+
+  applyServerState = () => {
+    if (this.serverState[this.tick]) {
+      this.serverState[this.tick].forEach(obj => {
+        this.fixGameObjectState(obj);
+      });
+      delete this.serverState[this.tick];
+    }
+  };
+
+  fixGameObjectState = (obj: IGameObject) => {
+    const objToFix = this.gameObjects.find(o => o.id === obj.id && o.type === obj.type);
+    if (objToFix){
+      objToFix.fixState(obj);
+
+      if (objToFix.type === GameObjectTypes.PLAYER){
+        (objToFix as Player).health = (obj as IPlayer).health;
+      }
+    }
+  };
+  //===================End of State Buffer==================
 
   checkTick = (tick: number) => {
     if (this.tick >= tick) {
       console.log("Client running to fast! Ticks rollbacked");
       this.tick = tick - 1;
     }
-    if ( this.tick + 2 < tick){
+    if (this.tick + 2 < tick) {
       console.log("Client running to slow! Ticks updated");
       this.tick = tick - 1;
     }

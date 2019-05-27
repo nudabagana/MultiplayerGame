@@ -1,5 +1,5 @@
 import "phaser";
-import { GameObjectTypes } from "../network/NetworkTypes";
+import { GameObjectTypes, IGameObject } from "../network/NetworkTypes";
 
 export default class GameObject {
   x: number;
@@ -9,14 +9,17 @@ export default class GameObject {
   color: number;
   type: GameObjectTypes;
   trueObject?: boolean;
-//------------
+  //------------
   destinationX: number;
   destinationY: number;
   xPerT: number;
   yPerT: number;
   movementSpeed: number;
   size: number;
-  shouldBeDestroyed:boolean;
+  shouldBeDestroyed: boolean;
+  interpolatedAmount: number;
+  xOffset: number;
+  yOffset: number;
 
   constructor(
     id: number,
@@ -27,7 +30,7 @@ export default class GameObject {
     graphics: Phaser.GameObjects.Graphics,
     color: number,
     type: GameObjectTypes,
-    trueObject?: boolean,
+    trueObject?: boolean
   ) {
     this.x = x;
     this.y = y;
@@ -43,6 +46,9 @@ export default class GameObject {
     this.type = type;
     this.trueObject = trueObject;
     this.shouldBeDestroyed = false;
+    this.interpolatedAmount = 0;
+    this.xOffset = 0;
+    this.yOffset = 0;
   }
 
   draw = () => {
@@ -77,6 +83,7 @@ export default class GameObject {
   };
 
   move = (delta: number) => {
+    this.interpolatePos();
     if (Math.abs(this.x - this.destinationX) > Math.abs(delta * this.xPerT)) {
       this.x += delta * this.xPerT;
     }
@@ -87,9 +94,23 @@ export default class GameObject {
 
   destroy = () => {
     this.shouldBeDestroyed = true;
-  }
+  };
 
   onCollision = (other: GameObject) => {
     console.log(`Object(${this.id}) collided with other(${other.id})`);
-  }
+  };
+
+  fixState = (obj: IGameObject) => {
+    this.xOffset = obj.x - this.x;
+    this.yOffset = obj.y - this.y;
+    this.interpolatedAmount = 0;
+  };
+
+  interpolatePos = () => {
+    if (this.interpolatedAmount < 10) {
+      this.x += this.xOffset * 0.1;
+      this.y += this.yOffset * 0.1;
+      this.interpolatedAmount += 1;
+    }
+  };
 }
