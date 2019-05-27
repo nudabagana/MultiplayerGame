@@ -16,7 +16,7 @@ export const playerFromIPlayer = (
   graphics: Phaser.GameObjects.Graphics,
   trueObject?: boolean
 ) => {
-  return new Player(
+  const playe = new Player(
     player.id,
     player.x,
     player.y,
@@ -26,6 +26,8 @@ export const playerFromIPlayer = (
     GameObjectTypes.PLAYER,
     trueObject
   );
+  playe.moveTo(player.destinationX, player.destinationY);
+  return playe;
 };
 
 export const rocketFromIRocket = (
@@ -35,6 +37,9 @@ export const rocketFromIRocket = (
 ) => {
   return new Rocket(
     rocket.id,
+    rocket.playerId,
+    rocket.x,
+    rocket.y,
     rocket.x,
     rocket.y,
     graphics,
@@ -51,6 +56,9 @@ export const bulletFromIBullet = (
 ) => {
   return new Bullet(
     rocket.id,
+    rocket.playerId,
+    rocket.x,
+    rocket.y,
     rocket.x,
     rocket.y,
     graphics,

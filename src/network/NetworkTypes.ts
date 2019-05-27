@@ -5,14 +5,25 @@ export enum ACTIONS {
   SET_PING = 3,
 }
 
+export enum NetworkMsgTypes {
+  STATE = 0,
+  ACTION = 1,
+  CREATE = 2,
+  DELETE = 3,
+  SET_TICK = 4,
+}
+
 export interface INetworkMsg {
-  gameState: IGameState;
+  data: IData;
   trueState: boolean;
 }
 
-export interface IGameState {
+export interface IData {
   tick: number;
-  gameObjects: IGameObject[];
+  type: NetworkMsgTypes;
+  gameObjects?: IGameObject[];
+  action?: IGameAction;
+  gameObject?: IPlayer | IRocket | IBullet;
 }
 
 export enum CLIENTS {
@@ -25,6 +36,8 @@ export interface IGameObject {
   id: number;
   x: number;
   y: number;
+  destinationX: number;
+  destinationY: number;
 }
 
 export interface IPlayer extends IGameObject {
@@ -43,4 +56,22 @@ export enum GameObjectTypes {
   PLAYER = 0,
   ROCKET = 1,
   BULLET = 2,
+}
+
+export interface IGameAction {
+  id?: number;
+  playerId: number;
+  action: ACTIONS;
+  x: number;
+  y: number;
+}
+
+export interface IMessageStorage {
+  [t: number]: IMessage[];
+}
+
+export interface IMessage {
+  action?: IGameAction;
+  objToCreate?: IPlayer | IRocket | IBullet;
+  objToDelete?: IPlayer | IRocket | IBullet;
 }

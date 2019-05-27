@@ -1,14 +1,34 @@
 import "phaser";
-import { longClickDurationMs, SceneTypes, ServerPort } from "../config";
+import {
+  longClickDurationMs,
+  SceneTypes,
+  ServerPort,
+  rocketLifespan,
+  player1Color,
+  player2Color,
+  bulletLifespan,
+} from "../config";
 import NetworkManager from "../network/NetworkManager";
-import { CLIENTS, GameObjectTypes, ACTIONS } from "../network/NetworkTypes";
-import DrawableObject from "./DrawableObject";
+import {
+  CLIENTS,
+  GameObjectTypes,
+  ACTIONS,
+  IMessageStorage,
+  IGameAction,
+  IMessage,
+} from "../network/NetworkTypes";
+import GameObject from "./GameObject";
 import InputPlayer from "../testing/InputPlayer";
 import StateRecorder from "../testing/StateRecorder";
+import { gameObjectfromIGameObject } from "../network/utils";
+import Rocket from "./Rocket";
+import Bullet from "./Bullet";
+
+const TICK_TIME = 1000 / 30;
 
 export default class GameScene extends Phaser.Scene {
-  gameObjects: DrawableObject[];
-  gameObjectsTrue: DrawableObject[];
+  gameObjects: GameObject[];
+  gameObjectsTrue: GameObject[];
   graphics?: Phaser.GameObjects.Graphics;
   prevMouseButton: number;
   leftButtonDownTime: number;
@@ -18,6 +38,8 @@ export default class GameScene extends Phaser.Scene {
   tick: number;
   tickTrue: number;
   inputPlayer?: InputPlayer;
+  unsimulatedTime: number;
+  receivedMessages: IMessageStorage;
 
   constructor() {
     super({
@@ -30,6 +52,8 @@ export default class GameScene extends Phaser.Scene {
     this.leftButtonDownTime = 0;
     this.tick = 0;
     this.tickTrue = 0;
+    this.unsimulatedTime = 0;
+    this.receivedMessages = {};
   }
 
   init = (data: { client: CLIENTS }) => {
@@ -135,6 +159,14 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
+    this.unsimulatedTime += delta;
+
+    while (this.unsimulatedTime > TICK_TIME) {
+      this.simulateStep(TICK_TIME);
+      this.unsimulatedTime -= TICK_TIME;
+      this.tick++;
+    }
+
     this.graphics!.clear();
     this.gameObjects.forEach(obj => obj.draw());
     this.gameObjectsTrue.forEach(obj => obj.draw());
@@ -145,8 +177,126 @@ export default class GameScene extends Phaser.Scene {
       this.gameObjectsTrue
     );
   }
+
+  simulateStep = (delta: number) => {
+    this.applayMessages();
+    this.move(delta);
+    this.checkCollisions();
+    this.destroy();
+  };
+
+  move = (delta: number) => {
+    this.gameObjects.forEach(obj => obj.move(delta));
+  };
+
+  checkCollisions = () => {
+    this.gameObjects.forEach(object => {
+      if (object.type !== GameObjectTypes.BULLET) {
+        this.gameObjects.forEach(other => {
+          if (
+            other.type !== GameObjectTypes.BULLET &&
+            this.checkCollision(object, other)
+          ) {
+            object.onCollision(other);
+          }
+        });
+      }
+    });
+  };
+
+  checkCollision = (object: GameObject, other: GameObject) => {
+    if (object.type !== other.type || object.id !== other.id) {
+      let distancePOW =
+        Math.pow(object.x - other.x, 2) + Math.pow(object.y - other.y, 2);
+      let bothradiusPOW = Math.pow(object.size + other.size, 2);
+      if (distancePOW < bothradiusPOW) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  checkCollisionBullet = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    circleX: number,
+    circleY: number,
+    radius: number
+  ) => {
+    const slope = (y2 - y1) / (x2 - x1);
+    const B = 1;
+    const A = -1 * slope;
+    const C = slope * x1 - y1;
+    const distance =
+      Math.abs(A * circleX + B * circleY + C) / Math.sqrt(A * A + B * B);
+    if (radius >= distance) {
+      return true;
+    }
+    return false;
+  };
+
+  destroy = () => {
+    this.gameObjects.forEach(obj => {
+      if (obj.shouldBeDestroyed) {
+        this.removeGameObject(obj.id, obj.type);
+      }
+    });
+  };
+
   //===================Game Objects==================
-  addGameObject = (obj: DrawableObject) => {
+  addRocket = (
+    id: number,
+    playerId: number,
+    x: number,
+    y: number,
+    destX: number,
+    destY: number
+  ) => {
+    const rocket = new Rocket(
+      id,
+      playerId,
+      x,
+      y,
+      destX,
+      destY,
+      this.graphics!,
+      playerId === 1 ? player1Color : player2Color,
+      GameObjectTypes.ROCKET
+    );
+    this.gameObjects.push(rocket);
+    setTimeout(
+      () => this.removeGameObject(rocket.id, rocket.type),
+      rocketLifespan
+    );
+  };
+
+  addBullet = (
+    id: number,
+    playerId: number,
+    x: number,
+    y: number,
+    destX: number,
+    destY: number
+  ) => {
+    const bullet = new Bullet(id, playerId, x, y, destX, destY, this.graphics!,playerId === 1 ? player1Color : player2Color,
+      GameObjectTypes.BULLET);
+    this.gameObjects.forEach(obj => {
+      if (obj.type === GameObjectTypes.PLAYER && obj.id !== playerId) {
+        if (
+          this.checkCollisionBullet(x, y, destX, destY, obj.x, obj.y, obj.size)
+        ) {
+          obj.onCollision(bullet);
+        }
+      }
+    });
+    this.gameObjects.push(bullet);
+
+    setTimeout(() => this.removeGameObject(bullet.id, bullet.type), bulletLifespan);
+  };
+
+  addGameObject = (obj: GameObject) => {
     this.gameObjects.push(obj);
   };
 
@@ -154,8 +304,10 @@ export default class GameScene extends Phaser.Scene {
     this.gameObjects = [];
   };
 
-  removeGameObject = (id: number) => {
-    this.gameObjects = this.gameObjects.filter(obj => obj.id !== id);
+  removeGameObject = (id: number, type: GameObjectTypes) => {
+    this.gameObjects = this.gameObjects.filter(
+      o => o.id !== id || o.type !== type
+    );
   };
 
   updateGameObjectPos = (id: number, x: number, y: number) => {
@@ -166,7 +318,7 @@ export default class GameScene extends Phaser.Scene {
     }
   };
 
-  addGameObjectTrue = (obj: DrawableObject) => {
+  addGameObjectTrue = (obj: GameObject) => {
     this.gameObjectsTrue.push(obj);
   };
 
@@ -189,7 +341,63 @@ export default class GameScene extends Phaser.Scene {
   getPlayers = () => {
     return this.gameObjects.filter(obj => obj.type === GameObjectTypes.PLAYER);
   };
+
+  getPlayer = (id: number) => {
+    return this.gameObjects.find(
+      obj => obj.type === GameObjectTypes.PLAYER && obj.id === id
+    );
+  };
   //===================End of Game Objects==================
+
+  addMessage = (tick: number, message: IMessage) => {
+    if (!this.receivedMessages[tick]) {
+      this.receivedMessages[tick] = [];
+    }
+    this.receivedMessages[tick].push(message);
+  };
+
+  applayMessages = () => {
+    if (this.receivedMessages[this.tick]) {
+      this.receivedMessages[this.tick].forEach(msg => {
+        if (msg.action) {
+          const player = this.getPlayer(msg.action.playerId);
+          if (msg.action.action === ACTIONS.MOVE) {
+            if (player) {
+              player.calculateMovement(msg.action.x, msg.action.y);
+            }
+          } else if (msg.action.action === ACTIONS.ROCKET) {
+            if (player) {
+              this.addRocket(msg.action.id!, msg.action.playerId,player.x, player.y, msg.action.x, msg.action.y);
+            }
+          } else if (msg.action.action === ACTIONS.BULLET) {
+            if (player) {
+              this.addBullet(msg.action.id!, msg.action.playerId,player.x, player.y, msg.action.x, msg.action.y);
+            }
+          }
+        }
+        if (msg.objToCreate) {
+          this.addGameObject(
+            gameObjectfromIGameObject(msg.objToCreate, this.graphics!)
+          );
+        }
+        if (msg.objToDelete) {
+          this.removeGameObject(msg.objToDelete.id, msg.objToDelete.type);
+        }
+      });
+      delete this.receivedMessages[this.tick];
+    }
+  };
+
+  checkTick = (tick: number) => {
+    if (this.tick >= tick) {
+      console.log("Client running to fast! Ticks rollbacked");
+      this.tick = tick - 1;
+    }
+    if ( this.tick + 2 < tick){
+      console.log("Client running to slow! Ticks updated");
+      this.tick = tick - 1;
+    }
+  };
 
   setTick = (tick: number) => {
     this.tick = tick;

@@ -1,9 +1,10 @@
 import "phaser";
-import { GREEN, healthBarSize, maxHealh, playerSize, RED, TruePosAlpha } from "../config";
-import DrawableObject from "./DrawableObject";
+import { GREEN, healthBarSize, maxHealh, playerSize, RED, TruePosAlpha, playerSeed, rocketDamage, bulletDamage } from "../config";
+import GameObject from "./GameObject";
 import { GameObjectTypes } from "../network/NetworkTypes";
+import Rocket from "./Rocket";
 
-export default class Player extends DrawableObject {
+export default class Player extends GameObject {
   health: number;
 
   constructor(
@@ -16,8 +17,34 @@ export default class Player extends DrawableObject {
     type: GameObjectTypes,
     trueObject?: boolean,
   ) {
-    super(id, x, y, graphics, color, type,trueObject);
+    super(id, x, y, playerSeed, playerSize, graphics, color, type,trueObject);
     this.health = health;
+  }
+
+  moveTo = (x: number, y: number) => {
+    this.calculateMovement(x,y);
+  };
+
+  onCollision = (other: GameObject) => {
+    if (other.type === GameObjectTypes.ROCKET && (other as Rocket).playerId !== this.id){
+      this.takeDamage(rocketDamage);
+      other.destroy();
+    }else if (other.type === GameObjectTypes.BULLET){
+      this.takeDamage(bulletDamage);
+      // other.destroy();
+    }
+  }
+
+  takeDamage = (damage: number ) => {
+    this.health -= damage;
+    if (this.health <= 0){
+      this.die();
+    }
+  }
+
+
+  die = () => {
+    this.destroy();
   }
 
   draw = () => {

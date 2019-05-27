@@ -1,4 +1,4 @@
-import DrawableObject from "../game/DrawableObject";
+import GameObject from "../game/GameObject";
 import { ACTIONS, GameObjectTypes } from "../network/NetworkTypes";
 
 interface IState {
@@ -83,8 +83,8 @@ export default class StateRecorder {
   addState = (
     tick: number,
     serverTick: number,
-    gameObjectState: DrawableObject[],
-    serverGameObjectState: DrawableObject[]
+    gameObjectState: GameObject[],
+    serverGameObjectState: GameObject[]
   ) => {
     if (this.recording) {
       this.states.push({

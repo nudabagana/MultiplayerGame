@@ -11,10 +11,12 @@ export const playerSeed = 0.2;
 export const rocketSize = 20;
 export const rocketSpeed = 0.8;
 export const rocketLifespan = 5000;
+export const rocketDamage = 25;
 // bulet
 export const bulletSize = 5;
 export const bulletSpeed = 3;
 export const bulletLifespan = 2000;
+export const bulletDamage = 5;
 
 export const TruePosAlpha = 0.5;
 export const GREEN = 0x00ff00;
