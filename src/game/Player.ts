@@ -30,7 +30,7 @@ export default class Player extends GameObject {
       this.takeDamage(rocketDamage);
       other.destroy();
     }else if (other.type === GameObjectTypes.BULLET){
-      this.takeDamage(bulletDamage);
+      // this.takeDamage(bulletDamage);
       // other.destroy();
     }
   }

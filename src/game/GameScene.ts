@@ -518,7 +518,7 @@ export default class GameScene extends Phaser.Scene {
       y,
       ACTIONS.BULLET
     );
-    this.networkManager!.bulletTo(id,x, y);
+    this.networkManager!.bulletTo(id,x, y, this.tick);
   };
 
   recordAllInputs = (doInputs: boolean) => {

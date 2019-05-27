@@ -71,8 +71,8 @@ export default class NetworkManager {
     this.socket.send(JSON.stringify({ action: ACTIONS.ROCKET, id, x, y }));
   };
 
-  bulletTo = (id: number, x: number, y: number) => {
-    this.socket.send(JSON.stringify({ action: ACTIONS.BULLET, id, x, y }));
+  bulletTo = (id: number, x: number, y: number, tick: number) => {
+    this.socket.send(JSON.stringify({ action: ACTIONS.BULLET, id, x, y, tick }));
   };
 
   updateGameObjects = (objects: IGameObject[]) => {
